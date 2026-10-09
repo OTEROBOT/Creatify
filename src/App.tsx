@@ -19,12 +19,13 @@ import {
 import { PipelineDiagramView } from './components/PipelineDiagramView';
 import { StageDetailPanel } from './components/StageDetailPanel';
 import { LiveExecutionEngine } from './components/LiveExecutionEngine';
+import { QuickStartGuide } from './components/QuickStartGuide';
 import { Wifi, WifiOff } from 'lucide-react';
 
 export default function App() {
   const [stages, setStages] = useState<StageConfig[]>(DEFAULT_STAGES);
   const [selectedStageId, setSelectedStageId] = useState<number>(3); // Default Stage 3 (AI Strategy Engine)
-  const [language, setLanguage] = useState<'TH' | 'EN'>('EN');
+  const [language, setLanguage] = useState<'TH' | 'EN'>('TH');
   const [isRunning, setIsRunning] = useState<boolean>(true);
   const [activePulseStageId, setActivePulseStageId] = useState<number | null>(3);
   const [wsConnected, setWsConnected] = useState<boolean>(false);
@@ -466,6 +467,13 @@ export default function App() {
               : 'End-to-end data flow from live market intake to order execution & alerts. Select a component to inspect.'}
           </p>
         </div>
+
+        {/* Beginner Onboarding & Quick Start Guide */}
+        <QuickStartGuide
+          language={language}
+          onQuickSimulate={executePipelineLoop}
+          onJumpToStage={(stageId) => setSelectedStageId(stageId)}
+        />
 
         {/* 2-Column Split Workspace: Left = Diagram + Inspector, Right = Live Execution Engine */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
