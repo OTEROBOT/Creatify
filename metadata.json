@@ -1,0 +1,6 @@
+{
+  "name": "Algorithmic Trading Bot Pipeline",
+  "description": "End-to-end algorithmic trading bot pipeline architecture inspector, live market signal simulator, and execution monitoring workbench.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
