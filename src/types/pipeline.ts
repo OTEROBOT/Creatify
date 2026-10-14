@@ -104,6 +104,8 @@ export interface BotSettings {
   // Execution settings
   executionAlgo: 'TWAP Micro-Slices' | 'VWAP Post-Only Maker' | 'IOC Direct Fill';
   maxSlippageBps: number;
+  scanSpeed?: 'TURBO_1S' | 'FAST_2S' | 'NORMAL_4S'; // Ultra-fast scan speed
+  bitkubAmountPerTradeThb?: number; // Real Bitkub trade amount per order (e.g. 50, 100 THB)
   // Alerts
   alertChannel: 'DISCORD' | 'TELEGRAM' | 'LINE_NOTIFY' | 'CUSTOM_WEBHOOK';
   discordWebhookUrl: string;

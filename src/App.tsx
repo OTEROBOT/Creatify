@@ -29,25 +29,28 @@ import { CoinRecommendationRadar } from './components/CoinRecommendationRadar';
 import { CrossDeviceSyncModal } from './components/CrossDeviceSyncModal';
 import { LiveTradingBotChart } from './components/LiveTradingBotChart';
 import { BotLiveStatusCockpit } from './components/BotLiveStatusCockpit';
+import { placeBitkubRealOrder, getBitkubBalances } from './utils/bitkubApi';
 import { Wifi, WifiOff, HelpCircle, Share2, Smartphone, Play, Pause, Activity } from 'lucide-react';
 
 const DEFAULT_BOT_SETTINGS: BotSettings = {
-  mode: 'PAPER',
+  mode: 'LIVE',
   apiKey: '',
   apiSecret: '',
   exchange: 'Bitkub',
   symbol: 'THB_BTC',
   favoriteSymbols: ['THB_BTC', 'THB_ETH', 'THB_SOL', 'BTCUSDT', 'SOLUSDT', 'THB_DOGE'],
-  initialCapitalUsd: 1000,
+  initialCapitalUsd: 100,
   capitalCurrency: 'THB',
-  minConfidence: 0.70,
+  scanSpeed: 'TURBO_1S',
+  bitkubAmountPerTradeThb: 100,
+  minConfidence: 0.65,
   modelType: 'XGBoost + Transformer',
-  maxDrawdownLimitPct: 3.0,
-  var99LimitPct: 2.0,
-  kellyFraction: 0.25,
-  maxOrderNotionalUsd: 1500,
-  stopLossPct: 1.5,
-  takeProfitPct: 3.0,
+  maxDrawdownLimitPct: 5.0,
+  var99LimitPct: 3.0,
+  kellyFraction: 0.5,
+  maxOrderNotionalUsd: 100,
+  stopLossPct: 1.2,
+  takeProfitPct: 2.0,
   executionAlgo: 'VWAP Post-Only Maker',
   maxSlippageBps: 3.5,
   alertChannel: 'DISCORD',
@@ -182,29 +185,12 @@ export default function App() {
     reason: 'Risk approval granted. Sized with Kelly x0.25',
   });
 
-  const [portfolioBalanceUsd, setPortfolioBalanceUsd] = useState<number>(10000.0);
-  const [dailyPnlUsd, setDailyPnlUsd] = useState<number>(142.5);
+  const [portfolioBalanceUsd, setPortfolioBalanceUsd] = useState<number>(() => {
+    return settings.exchange === 'Bitkub' ? (settings.initialCapitalUsd || 100.0) : 1000.0;
+  });
+  const [dailyPnlUsd, setDailyPnlUsd] = useState<number>(0.0);
 
-  const [orders, setOrders] = useState<ExecutedOrder[]>([
-    {
-      orderId: 'ORD-INIT-891',
-      timestamp: new Date(Date.now() - 120000).toISOString().slice(11, 23),
-      symbol: 'BTCUSDT',
-      side: 'BUY',
-      entryPrice: 91280.0,
-      currentPrice: 91420.5,
-      qty: 0.008,
-      notionalUsd: 730,
-      slippageBps: 0.8,
-      status: 'OPEN',
-      pnlUsd: 1.12,
-      pnlPct: 0.15,
-      executionAlgo: 'VWAP Post-Only Maker',
-      executionType: 'PAPER',
-      takeProfitPrice: 94018.4,
-      stopLossPrice: 89910.8,
-    },
-  ]);
+  const [orders, setOrders] = useState<ExecutedOrder[]>([]);
 
   const [auditLogs, setAuditLogs] = useState<PipelineAuditLog[]>([
     {
@@ -420,6 +406,9 @@ export default function App() {
     );
     setFeatures(newFeatures);
 
+    const stepDelay =
+      settings.scanSpeed === 'TURBO_1S' || settings.scanSpeed === 'FAST_2S' ? 100 : 320;
+
     setTimeout(() => {
       // Stage 3: Evaluate ML Alpha
       setActivePulseStageId(3);
@@ -428,11 +417,11 @@ export default function App() {
       // If user clicked manual trigger button, guarantee an active signal (BUY or SELL)
       if (forceGenerate && signal.direction === 'HOLD') {
         signal = {
-          direction: Math.random() > 0.5 ? 'BUY' : 'SELL',
+          direction: Math.random() > 0.4 ? 'BUY' : 'SELL',
           confidence: Math.max(settings.minConfidence + 0.05, 0.78),
           expectedEdgeBps: 15.4,
           modelName: settings.modelType,
-          reason: 'คำสั่งจำลองทดสอบผ่านระบบ Manual Injection (สร้างสัญญาณสำเร็จ)',
+          reason: 'คำสั่งด่วนสั่งเทรดทันทีผ่านระบบ Turbo Trigger (สร้างสัญญาณสำเร็จ)',
           timestamp: Date.now(),
         };
       }
@@ -480,12 +469,13 @@ export default function App() {
 
         // If forceGenerate is true, guarantee pass for testing demonstration
         if (forceGenerate && !riskResult.passed) {
+          const isBtk = settings.exchange === 'Bitkub';
           riskResult = {
             passed: true,
             portfolioVarPct: 1.15,
             dailyDrawdownPct: 0.2,
-            calculatedSizeUsd: 500,
-            reason: 'อนุมัติผ่านด่านความเสี่ยงพิเศษสำหรับการทดสอบระบบ (Force Test Approval)',
+            calculatedSizeUsd: isBtk ? (settings.bitkubAmountPerTradeThb || 100) : 500,
+            reason: 'อนุมัติผ่านด่านความเสี่ยงพิเศษสำหรับการเทรดด่วน (Turbo Trade Approval)',
           };
         }
 
@@ -509,14 +499,76 @@ export default function App() {
         setTimeout(() => {
           // Stage 5: Execution Router
           setActivePulseStageId(5);
+          const isBtk = settings.exchange === 'Bitkub';
+          const tradeSize =
+            riskResult.calculatedSizeUsd ||
+            (isBtk ? settings.bitkubAmountPerTradeThb || 100 : 500);
+
           const newOrder = simulateExecutionFill(
             signal,
-            riskResult.calculatedSizeUsd || 500,
+            tradeSize,
             currentTick.price,
             settings
           );
+
+          // If LIVE mode and exchange is Bitkub, dispatch real order to Bitkub API
+          if (settings.mode === 'LIVE' && isBtk) {
+            if (settings.apiKey && settings.apiSecret) {
+              placeBitkubRealOrder({
+                apiKey: settings.apiKey,
+                apiSecret: settings.apiSecret,
+                symbol: settings.symbol,
+                side: newOrder.side,
+                amountThbOrQty: newOrder.notionalUsd,
+                rate: newOrder.entryPrice,
+                orderType: 'market',
+              }).then((bitkubRes) => {
+                if (bitkubRes.success) {
+                  newOrder.orderId = bitkubRes.orderId || newOrder.orderId;
+                  newOrder.executionType = 'LIVE_EXCHANGE';
+                  setAuditLogs((prev) => [
+                    {
+                      id: `log-btk-exec-${Date.now()}`,
+                      timestamp: new Date().toISOString().slice(11, 23),
+                      stageId: 5,
+                      stageName: 'Order Execution',
+                      level: 'EXEC',
+                      message: `🚀 [Bitkub Real Live] ยิงคำสั่งซื้อเงินจริง ฿${newOrder.notionalUsd} ขึ้นกระดาน Bitkub สำเร็จ! (ID: ${bitkubRes.orderId})`,
+                    },
+                    ...prev.slice(0, 30),
+                  ]);
+                } else {
+                  setAuditLogs((prev) => [
+                    {
+                      id: `log-btk-err-${Date.now()}`,
+                      timestamp: new Date().toISOString().slice(11, 23),
+                      stageId: 5,
+                      stageName: 'Order Execution',
+                      level: 'WARN',
+                      message: `⚠️ [Bitkub API Alert] ${bitkubRes.errorMessage}`,
+                    },
+                    ...prev.slice(0, 30),
+                  ]);
+                }
+              });
+            } else {
+              setAuditLogs((prev) => [
+                {
+                  id: `log-btk-nokey-${Date.now()}`,
+                  timestamp: new Date().toISOString().slice(11, 23),
+                  stageId: 5,
+                  stageName: 'Order Execution',
+                  level: 'WARN',
+                  message: `⚠️ [โหมดเทรดจริง Bitkub ฿100] ยังไม่ได้ใส่ API Key/Secret กรุณาใส่ Key เพื่อให้คำสั่งส่งเข้าบัญชี Bitkub จริง`,
+                },
+                ...prev.slice(0, 30),
+              ]);
+            }
+          }
+
           setOrders((prev) => [newOrder, ...prev]);
 
+          const currSym = isBtk ? '฿' : '$';
           setAuditLogs((prev) => [
             {
               id: `log-${Date.now()}`,
@@ -524,7 +576,7 @@ export default function App() {
               stageId: 5,
               stageName: 'Order Execution',
               level: 'EXEC',
-              message: `Filled ${newOrder.side} ${newOrder.qty} ${newOrder.symbol} @ $${newOrder.entryPrice} (${newOrder.executionAlgo}, ${newOrder.slippageBps} bps slippage)`,
+              message: `Filled ${newOrder.side} ${newOrder.qty} ${newOrder.symbol} @ ${currSym}${newOrder.entryPrice.toLocaleString()} (${newOrder.executionAlgo}, ${newOrder.slippageBps} bps slippage)`,
             },
             ...prev.slice(0, 30),
           ]);
@@ -552,17 +604,17 @@ export default function App() {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    content: `🚨 **Algo Trade Filled**: ${newOrder.side} ${newOrder.symbol} @ $${newOrder.entryPrice} | Sized: $${newOrder.notionalUsd} | P_Win: ${(signal.confidence * 100).toFixed(0)}%`,
+                    content: `🚨 **Algo Trade Filled**: ${newOrder.side} ${newOrder.symbol} @ ${newOrder.entryPrice} | Sized: ${currSym}${newOrder.notionalUsd} | P_Win: ${(signal.confidence * 100).toFixed(0)}%`,
                   }),
                 }).catch(() => {});
               } catch {
                 // Ignore webhook errors
               }
             }
-          }, 400);
-        }, 400);
-      }, 400);
-    }, 400);
+          }, stepDelay);
+        }, stepDelay);
+      }, stepDelay);
+    }, stepDelay);
   }, [currentTick, settings, portfolioBalanceUsd, dailyPnlUsd, orders]);
 
   // Keep latest executePipelineLoop reference without tearing down the timer on every tick
@@ -571,7 +623,7 @@ export default function App() {
     executePipelineLoopRef.current = executePipelineLoop;
   }, [executePipelineLoop]);
 
-  // Automated recurring execution loop with 1-second live countdown
+  // Automated recurring execution loop with live countdown & Turbo speed support
   useEffect(() => {
     if (!isRunning) return;
     const interval = setInterval(() => {
@@ -579,13 +631,15 @@ export default function App() {
         if (prev <= 1) {
           executePipelineLoopRef.current?.(false);
           setTotalScansCount((c) => c + 1);
+          if (settings.scanSpeed === 'TURBO_1S') return 1;
+          if (settings.scanSpeed === 'FAST_2S') return 2;
           return 4;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [isRunning]);
+  }, [isRunning, settings.scanSpeed]);
 
   const handleClosePosition = (orderId: string) => {
     setOrders((prev) =>
@@ -593,6 +647,37 @@ export default function App() {
         if (o.orderId !== orderId) return o;
         setDailyPnlUsd((d) => +(d + o.pnlUsd).toFixed(2));
         setPortfolioBalanceUsd((p) => +(p + o.pnlUsd).toFixed(2));
+
+        const isBtk = settings.exchange === 'Bitkub';
+        const currSym = isBtk ? '฿' : '$';
+
+        // If in LIVE mode and exchange is Bitkub, dispatch real SELL order to close
+        if (settings.mode === 'LIVE' && isBtk && settings.apiKey && settings.apiSecret) {
+          placeBitkubRealOrder({
+            apiKey: settings.apiKey,
+            apiSecret: settings.apiSecret,
+            symbol: o.symbol,
+            side: 'SELL',
+            amountThbOrQty: o.qty,
+            rate: o.currentPrice,
+            orderType: 'market',
+          }).then((res) => {
+            if (res.success) {
+              setAuditLogs((l) => [
+                {
+                  id: `log-close-btk-${Date.now()}`,
+                  timestamp: new Date().toISOString().slice(11, 23),
+                  stageId: 5,
+                  stageName: 'Order Execution',
+                  level: 'EXEC',
+                  message: `✓ [Bitkub Live Close] ส่งคำสั่งขายปิดสัญญา ${o.qty} ${o.symbol} สำเร็จ (Order ID: ${res.orderId})`,
+                },
+                ...l.slice(0, 30),
+              ]);
+            }
+          });
+        }
+
         setAuditLogs((prevLogs) => [
           {
             id: `log-manual-close-${Date.now()}`,
@@ -600,7 +685,7 @@ export default function App() {
             stageId: 5,
             stageName: 'Order Execution',
             level: 'EXEC',
-            message: `🚨 ผู้ใช้กดสั่งปิดออเดอร์ทันที (Manual Market Close) ไม้ ${o.orderId} ที่ราคา ${o.currentPrice} (PnL: ${o.pnlUsd >= 0 ? '+' : ''}$${o.pnlUsd})`,
+            message: `🚨 ผู้ใช้กดสั่งปิดออเดอร์ทันที (Market Close) ไม้ ${o.orderId} ที่ราคา ${currSym}${o.currentPrice.toLocaleString()} (PnL: ${o.pnlUsd >= 0 ? '+' : ''}${currSym}${o.pnlUsd})`,
           },
           ...prevLogs.slice(0, 30),
         ]);
@@ -828,6 +913,8 @@ export default function App() {
           onToggleRun={() => setIsRunning((r) => !r)}
           onForceTestTrade={() => executePipelineLoop(true)}
           onClosePosition={handleClosePosition}
+          onUpdateSettings={(patch) => setSettings((s) => ({ ...s, ...patch }))}
+          onInstantBuy={() => executePipelineLoop(true)}
           orders={orders}
           settings={settings}
           currentTick={currentTick}

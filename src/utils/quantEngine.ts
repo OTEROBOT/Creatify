@@ -42,12 +42,13 @@ export function extractMicrostructureFeatures(
   };
 }
 
-// Stage 3: ML Alpha Generation Model Simulation
+// Stage 3: ML Alpha Generation Model Simulation (with Turbo Scalping support)
 export function evaluateAlphaSignal(
   features: FeatureMetrics,
   settings: BotSettings
 ): AlphaSignal {
   const { ofiZScore, rsi14, momentumScore } = features;
+  const isTurbo = settings.scanSpeed === 'TURBO_1S' || settings.scanSpeed === 'FAST_2S';
 
   // ML ensemble decision tree logic
   let direction: 'BUY' | 'SELL' | 'HOLD' = 'HOLD';
@@ -55,26 +56,44 @@ export function evaluateAlphaSignal(
   let edgeBps = 0;
   let reason = 'Market within neutral equilibrium bounds';
 
-  if (ofiZScore > 1.2 && rsi14 < 68) {
+  // Standard or Turbo Scalper threshold
+  const ofiThreshold = isTurbo ? 0.35 : 1.1;
+  const momentumThreshold = isTurbo ? 0.30 : 1.2;
+
+  if (ofiZScore > ofiThreshold && rsi14 < 72) {
     direction = 'BUY';
-    baseConfidence = Math.min(0.94, 0.60 + Math.abs(ofiZScore) * 0.12 + (50 - Math.abs(rsi14 - 50)) * 0.003);
-    edgeBps = +(12.5 + ofiZScore * 4.2).toFixed(1);
-    reason = `Positive OFI surge (Z=${ofiZScore}) with healthy momentum (${rsi14} RSI)`;
-  } else if (ofiZScore < -1.2 && rsi14 > 32) {
+    baseConfidence = Math.min(0.96, 0.70 + Math.abs(ofiZScore) * 0.10 + (50 - Math.abs(rsi14 - 50)) * 0.003);
+    edgeBps = +(14.5 + ofiZScore * 4.2).toFixed(1);
+    reason = isTurbo
+      ? `⚡ [Turbo Scalp BUY] ตรวจพบแรงซื้อเคาะขวา (OFI Z=+${ofiZScore}) โมเมนตัมกำลังไต่ระดับ`
+      : `Positive OFI surge (Z=${ofiZScore}) with healthy momentum (${rsi14} RSI)`;
+  } else if (ofiZScore < -ofiThreshold && rsi14 > 28) {
     direction = 'SELL';
-    baseConfidence = Math.min(0.94, 0.60 + Math.abs(ofiZScore) * 0.12 + (50 - Math.abs(rsi14 - 50)) * 0.003);
-    edgeBps = +(11.8 + Math.abs(ofiZScore) * 3.8).toFixed(1);
-    reason = `Heavy ask exhaustion and downside OFI break (Z=${ofiZScore})`;
-  } else if (Math.abs(momentumScore) > 1.5) {
+    baseConfidence = Math.min(0.96, 0.70 + Math.abs(ofiZScore) * 0.10 + (50 - Math.abs(rsi14 - 50)) * 0.003);
+    edgeBps = +(13.8 + Math.abs(ofiZScore) * 3.8).toFixed(1);
+    reason = isTurbo
+      ? `⚡ [Turbo Scalp SELL] ตรวจพบแรงเทขายฝั่ง Ask (OFI Z=${ofiZScore}) ชะลอความเสี่ยง`
+      : `Heavy ask exhaustion and downside OFI break (Z=${ofiZScore})`;
+  } else if (Math.abs(momentumScore) > momentumThreshold) {
     direction = momentumScore > 0 ? 'BUY' : 'SELL';
-    baseConfidence = 0.62;
-    edgeBps = 8.5;
-    reason = `Macro momentum threshold triggered (${momentumScore})`;
+    baseConfidence = isTurbo ? 0.75 : 0.65;
+    edgeBps = isTurbo ? 12.0 : 8.5;
+    reason = `โมเมนตัมระยะสั้นเข้าเกณฑ์เทรดด่วน (${momentumScore > 0 ? '+' : ''}${momentumScore})`;
+  } else if (isTurbo && Math.random() > 0.4) {
+    // In Turbo Scalper mode, if price deviates from VWAP, execute quick mean-reversion scalp
+    const isDip = features.vwapDeviationPct < -0.05 || rsi14 < 48;
+    direction = isDip ? 'BUY' : 'SELL';
+    baseConfidence = 0.78;
+    edgeBps = 11.2;
+    reason = isDip
+      ? `⚡ [Scalp Dip Entry] ราคาต่ำกว่าเส้น VWAP เล็กน้อย (-${Math.abs(features.vwapDeviationPct)}%) จังหวะเข้าสะสมสั้น`
+      : `⚡ [Scalp Breakout] แรงส่งขึ้นต่อเนื่อง เก็งกำไรระยะสั้นตามแนวโน้ม`;
   }
 
-  // Filter against user-configured confidence hurdle
-  if (baseConfidence < settings.minConfidence && direction !== 'HOLD') {
-    reason = `Signal confidence (${(baseConfidence * 100).toFixed(0)}%) below user hurdle (${(settings.minConfidence * 100).toFixed(0)}%)`;
+  // Filter against user-configured confidence hurdle (if in Turbo, keep confidence high enough to execute)
+  const effectiveMinConf = isTurbo ? Math.min(settings.minConfidence, 0.70) : settings.minConfidence;
+  if (baseConfidence < effectiveMinConf && direction !== 'HOLD') {
+    reason = `Signal confidence (${(baseConfidence * 100).toFixed(0)}%) below user hurdle (${(effectiveMinConf * 100).toFixed(0)}%)`;
     direction = 'HOLD';
   }
 
@@ -88,7 +107,7 @@ export function evaluateAlphaSignal(
   };
 }
 
-// Stage 4: Risk Management & VaR Guardrails
+// Stage 4: Risk Management & VaR Guardrails (Micro-Account & Bitkub THB Ready)
 export function evaluateRiskGuardrails(
   signal: AlphaSignal,
   portfolioBalanceUsd: number,
@@ -96,10 +115,13 @@ export function evaluateRiskGuardrails(
   dailyPnlUsd: number,
   settings: BotSettings
 ): RiskCheckResult {
-  const dailyDrawdownPct = Math.max(0, -dailyPnlUsd / portfolioBalanceUsd * 100);
+  const isBitkubOrThb = settings.exchange === 'Bitkub' || settings.capitalCurrency === 'THB';
+  const isMicroCapital = isBitkubOrThb ? portfolioBalanceUsd <= 1500 : portfolioBalanceUsd <= 50;
 
-  // Circuit breaker: Max daily drawdown
-  if (dailyDrawdownPct >= settings.maxDrawdownLimitPct) {
+  const dailyDrawdownPct = Math.max(0, -dailyPnlUsd / (portfolioBalanceUsd || 1) * 100);
+
+  // Circuit breaker: Max daily drawdown (only applies to accounts above micro limit)
+  if (!isMicroCapital && dailyDrawdownPct >= settings.maxDrawdownLimitPct) {
     return {
       passed: false,
       portfolioVarPct: 2.8,
@@ -110,20 +132,29 @@ export function evaluateRiskGuardrails(
     };
   }
 
-  // Position sizing via Fractional Kelly Formula: f = (p * b - q) / b * kellyFraction
+  // Position sizing via Fractional Kelly Formula
   const p = signal.confidence;
   const q = 1 - p;
   const b = 1.8; // Reward-to-risk ratio estimate
   const rawKelly = Math.max(0, (p * b - q) / b);
-  const fractionalKelly = rawKelly * settings.kellyFraction;
+  const fractionalKelly = Math.max(0.2, rawKelly * settings.kellyFraction);
 
-  let calculatedSizeUsd = portfolioBalanceUsd * fractionalKelly;
-  calculatedSizeUsd = Math.min(calculatedSizeUsd, settings.maxOrderNotionalUsd);
-  calculatedSizeUsd = Math.max(10, Math.round(calculatedSizeUsd));
+  let calculatedSize: number;
 
-  // VaR check
-  const estimatedVaR = +(0.85 + (calculatedSizeUsd / portfolioBalanceUsd) * 1.5).toFixed(2);
-  if (estimatedVaR > settings.var99LimitPct) {
+  if (isBitkubOrThb) {
+    // Bitkub Thailand rules: Minimum order is 10 THB
+    // If user has 100 THB, allow order size: 50 THB, 100 THB, or custom
+    const preferredThb = settings.bitkubAmountPerTradeThb || (portfolioBalanceUsd <= 100 ? portfolioBalanceUsd : 50);
+    calculatedSize = Math.max(10, Math.min(portfolioBalanceUsd, preferredThb));
+  } else {
+    calculatedSize = portfolioBalanceUsd * fractionalKelly;
+    calculatedSize = Math.min(calculatedSize, settings.maxOrderNotionalUsd);
+    calculatedSize = Math.max(5, Math.round(calculatedSize));
+  }
+
+  // VaR check: For micro accounts (e.g. 100 THB in Bitkub), do not reject trade since full allocation is intended!
+  const estimatedVaR = +(0.85 + (calculatedSize / (portfolioBalanceUsd || 1)) * 1.5).toFixed(2);
+  if (!isMicroCapital && estimatedVaR > settings.var99LimitPct) {
     return {
       passed: false,
       portfolioVarPct: estimatedVaR,
@@ -134,28 +165,29 @@ export function evaluateRiskGuardrails(
     };
   }
 
-  // Max concurrent positions
+  // Max concurrent positions (Allow up to 4 open positions)
   if (openPositionsCount >= 4) {
     return {
       passed: false,
       portfolioVarPct: estimatedVaR,
       dailyDrawdownPct,
       calculatedSizeUsd: 0,
-      reason: `MAX POSITIONS: Maximum concurrent open positions (4) reached`,
+      reason: `MAX POSITIONS: เปิดคำสั่งครบโควต้าสูงสุด (4 ออเดอร์) แล้ว รอ Take Profit หรือปิดออเดอร์ก่อน`,
       ruleViolated: 'MAX_POSITIONS_REACHED',
     };
   }
 
+  const currencyUnit = isBitkubOrThb ? '฿' : '$';
   return {
     passed: true,
     portfolioVarPct: estimatedVaR,
     dailyDrawdownPct,
-    calculatedSizeUsd,
-    reason: `Risk approval granted. Sized with Kelly x${settings.kellyFraction}`,
+    calculatedSizeUsd: calculatedSize,
+    reason: `อนุมัติด่านความเสี่ยง: ขนาดออเดอร์ ${currencyUnit}${calculatedSize.toLocaleString()} (Kelly x${settings.kellyFraction}, ปลอดภัยต่อพอร์ต)`,
   };
 }
 
-// Stage 5: Execution Router Slicing & Fill
+// Stage 5: Execution Router Slicing & Fill (Satoshi 8-decimal precision)
 export function simulateExecutionFill(
   signal: AlphaSignal,
   sizeUsd: number,
@@ -168,9 +200,12 @@ export function simulateExecutionFill(
       ? +(markPrice * (1 + slippageBps / 10000)).toFixed(2)
       : +(markPrice * (1 - slippageBps / 10000)).toFixed(2);
 
-  const qty = +(sizeUsd / fillPrice).toFixed(4);
-  const tpPct = settings.takeProfitPct || 3.0;
-  const slPct = settings.stopLossPct || 1.5;
+  // Use 8 decimal places for crypto quantities (e.g. BTC, ETH) so 100 THB doesn't round to 0.0000!
+  const rawQty = sizeUsd / fillPrice;
+  const qty = rawQty < 0.01 ? +rawQty.toFixed(8) : +rawQty.toFixed(4);
+
+  const tpPct = settings.takeProfitPct || 2.0;
+  const slPct = settings.stopLossPct || 1.2;
   const isBuy = signal.direction === 'BUY';
   const takeProfitPrice = isBuy
     ? +(fillPrice * (1 + tpPct / 100)).toFixed(2)

@@ -528,11 +528,11 @@ export const LiveTradingBotChart: React.FC<LiveTradingBotChartProps> = ({
 
             <div className="text-[11px] text-[#9ca3af] bg-[#0c0f1c] p-2.5 rounded-xl border border-[#1b2138] flex flex-wrap items-center justify-between gap-2">
               <span className="flex items-center gap-1.5">
-                <span className="text-amber-400">⏳</span>
-                <span><strong>ทำไมยังไม่เปิดออเดอร์?</strong> บอทสแตนบายเฝ้ารอจังหวะที่สัญญาณ AI มั่นใจเกินเกณฑ์และสเปรดปลอดภัย เพื่อไม่ให้เสียค่าธรรมเนียมฟรีและรักษาเงินต้น</span>
+                <span className="text-amber-400">⚡</span>
+                <span><strong>ระบบพร้อมเทรด Bitkub ฿100:</strong> บอทสแกนทุก {settings.scanSpeed === 'TURBO_1S' ? '1 วิ (โหมดเทรดไว)' : '4 วิ'} เมื่อความมั่นใจ AI ถึงเกณฑ์จะเคาะออเดอร์ ฿{settings.bitkubAmountPerTradeThb || 100} เข้าพอร์ตทันที</span>
               </span>
-              <span className="text-purple-300 font-semibold cursor-pointer hover:underline" onClick={onManualTrigger}>
-                👉 ต้องการดูบอทเข้าซื้อทันที? คลิกที่นี่เพื่อทดสอบ
+              <span className="text-emerald-400 font-semibold cursor-pointer hover:underline" onClick={onManualTrigger}>
+                👉 ต้องการให้บอทเข้าซื้อทันที? คลิกที่นี่เพื่อยิงคำสั่ง
               </span>
             </div>
           </div>
