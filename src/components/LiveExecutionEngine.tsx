@@ -61,41 +61,41 @@ export const LiveExecutionEngine: React.FC<LiveExecutionEngineProps> = ({
   };
 
   return (
-    <div className="w-full rounded-[28px] bg-[#141416] border border-[#27272b] p-6 sm:p-8 flex flex-col h-full">
+    <div className="w-full rounded-[28px] bg-[#090b14] border border-[#1e2238] p-6 sm:p-8 flex flex-col h-full shadow-[0_10px_35px_rgba(0,0,0,0.5)]">
       {/* Header & Main Bot Controller */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-[#232329]">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-[#1b1f33]">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-semibold tracking-tight text-[#f4f4f5]">
+            <h2 className="text-xl font-bold tracking-tight text-[#f4f4f5]">
               {language === 'TH' ? 'เครื่องยนต์เทรดและการทำงานจริง' : 'Execution Engine & Live Positions'}
             </h2>
-            {/* Mode badge */}
+            {/* Mode badge with neon borders */}
             <span
-              className={`px-2.5 py-0.5 rounded text-[11px] font-mono font-bold tracking-wider ${
+              className={`px-2.5 py-0.5 rounded-lg text-[11px] font-mono font-bold tracking-wider ${
                 settings.mode === 'LIVE'
-                  ? 'bg-rose-950 text-rose-300 border border-rose-800'
-                  : 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                  ? 'bg-rose-950/60 text-rose-300 border border-rose-500/50 shadow-[0_0_12px_rgba(244,63,94,0.2)]'
+                  : 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/50 shadow-[0_0_12px_rgba(34,197,94,0.2)]'
               }`}
             >
               {settings.mode === 'LIVE' ? 'LIVE EXCHANGE MODE' : 'PAPER SIMULATION MODE'}
             </span>
           </div>
-          <p className="mt-1 text-xs text-[#a1a1aa]">
+          <p className="mt-1 text-xs text-[#9ca3af]">
             {language === 'TH'
               ? 'คำสั่งซื้อขายจริงถูกคัดกรองผ่านทั้ง 6 ขั้นตอนโดยอัตโนมัติเมื่อมีสัญญาณความมั่นใจสูง'
-              : 'End-to-end execution loop driven by real Binance tick streams and pre-trade VaR guardrails.'}
+              : 'End-to-end execution loop driven by real tick streams and pre-trade VaR guardrails.'}
           </p>
         </div>
 
-        {/* Primary Functional Controls */}
+        {/* Primary Functional Controls with Micro-Interactions */}
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={onToggleRun}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer btn-micro ${
               isRunning
-                ? 'bg-[#311b1b] text-[#f87171] border border-[#5c2828] hover:bg-[#3f2121]'
-                : 'bg-[#1d3354] text-[#93c5fd] border border-[#2e5288] hover:bg-[#25416b]'
+                ? 'bg-rose-950/50 text-rose-300 border border-rose-500/40 hover:bg-rose-900/50 shadow-[0_0_12px_rgba(244,63,94,0.2)]'
+                : 'bg-blue-950/50 text-blue-200 border border-blue-500/40 hover:bg-blue-900/50 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
             }`}
           >
             {isRunning ? (
@@ -114,9 +114,9 @@ export const LiveExecutionEngine: React.FC<LiveExecutionEngineProps> = ({
           <button
             type="button"
             onClick={onManualTrigger}
-            className="px-3.5 py-2 rounded-xl text-xs font-medium text-[#e4e4e7] bg-[#1c1c21] hover:bg-[#27272e] border border-[#2e2e36] flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 hover:from-purple-500 hover:via-pink-500 hover:to-blue-500 border border-purple-400/40 shadow-[0_0_15px_rgba(168,85,247,0.3)] flex items-center gap-1.5 transition-all cursor-pointer btn-micro active:scale-95"
           >
-            <Zap className="w-3.5 h-3.5 text-[#60a5fa]" />
+            <Zap className="w-3.5 h-3.5 text-yellow-300" />
             <span>{language === 'TH' ? 'ทดสอบยิง 1 ออเดอร์' : 'Trigger Signal'}</span>
           </button>
 
@@ -124,7 +124,7 @@ export const LiveExecutionEngine: React.FC<LiveExecutionEngineProps> = ({
             type="button"
             onClick={exportLedgerCsv}
             disabled={orders.length === 0}
-            className="px-3 py-2 rounded-xl text-xs font-medium text-[#a1a1aa] hover:text-[#f4f4f5] bg-[#18181c] hover:bg-[#222228] border border-[#27272d] disabled:opacity-40 flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-3 py-2 rounded-xl text-xs font-medium text-[#9ca3af] hover:text-[#f4f4f5] bg-[#121524] hover:bg-[#1a1f33] border border-[#232840] disabled:opacity-40 flex items-center gap-1.5 transition-all cursor-pointer btn-micro"
           >
             <Download className="w-3.5 h-3.5" />
             <span>CSV</span>
@@ -132,48 +132,48 @@ export const LiveExecutionEngine: React.FC<LiveExecutionEngineProps> = ({
         </div>
       </div>
 
-      {/* Portfolio & Performance Stats Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 border-b border-[#232329]">
-        <div>
-          <div className="text-xs text-[#71717a]">
+      {/* Portfolio & Performance Stats Strip with Neon Highlights */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 border-b border-[#1b1f33]">
+        <div className="p-3 bg-[#0d101c] rounded-2xl border border-[#1d2338]">
+          <div className="text-xs text-[#9ca3af]">
             {language === 'TH' ? 'ยอดเงินพอร์ตสุทธิ' : 'Portfolio Balance'}
           </div>
-          <div className="mt-0.5 text-xl font-mono font-semibold text-[#f4f4f5] tabular-nums">
+          <div className="mt-1 text-xl font-mono font-bold text-[#f4f4f5] tabular-nums">
             ${portfolioBalanceUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
 
-        <div>
-          <div className="text-xs text-[#71717a]">
+        <div className="p-3 bg-[#0d101c] rounded-2xl border border-[#1d2338]">
+          <div className="text-xs text-[#9ca3af]">
             {language === 'TH' ? 'PnL ที่ยังไม่ปิด (Unrealized)' : 'Unrealized PnL'}
           </div>
           <div
-            className={`mt-0.5 text-xl font-mono font-semibold tabular-nums ${
-              totalUnrealizedPnl >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'
+            className={`mt-1 text-xl font-mono font-bold tabular-nums ${
+              totalUnrealizedPnl >= 0 ? 'text-emerald-400' : 'text-pink-400'
             }`}
           >
             {totalUnrealizedPnl >= 0 ? `+$${totalUnrealizedPnl.toFixed(2)}` : `-$${Math.abs(totalUnrealizedPnl).toFixed(2)}`}
           </div>
         </div>
 
-        <div>
-          <div className="text-xs text-[#71717a]">
+        <div className="p-3 bg-[#0d101c] rounded-2xl border border-[#1d2338]">
+          <div className="text-xs text-[#9ca3af]">
             {language === 'TH' ? 'PnL ประจำวัน (Daily Net)' : 'Daily Realized PnL'}
           </div>
           <div
-            className={`mt-0.5 text-xl font-mono font-semibold tabular-nums ${
-              dailyPnlUsd >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'
+            className={`mt-1 text-xl font-mono font-bold tabular-nums ${
+              dailyPnlUsd >= 0 ? 'text-emerald-400' : 'text-pink-400'
             }`}
           >
             {dailyPnlUsd >= 0 ? `+$${dailyPnlUsd.toFixed(2)}` : `-$${Math.abs(dailyPnlUsd).toFixed(2)}`}
           </div>
         </div>
 
-        <div>
-          <div className="text-xs text-[#71717a]">
+        <div className="p-3 bg-[#0d101c] rounded-2xl border border-[#1d2338]">
+          <div className="text-xs text-[#9ca3af]">
             {language === 'TH' ? 'ราคาตลาดสด (Live Binance)' : 'Live Mark Price'}
           </div>
-          <div className="mt-0.5 text-xl font-mono font-semibold text-[#93b4fa] tabular-nums">
+          <div className="mt-1 text-xl font-mono font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-blue-300 tabular-nums">
             ${currentTick ? currentTick.price.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '---'}
           </div>
         </div>
@@ -181,14 +181,14 @@ export const LiveExecutionEngine: React.FC<LiveExecutionEngineProps> = ({
 
       {/* Workspace Tabs: Open Positions vs Pipeline Audit Trail vs API Settings */}
       <div className="flex items-center justify-between gap-2 pt-4 pb-3">
-        <div className="flex items-center gap-1 p-1 bg-[#0e0e11] rounded-xl border border-[#232329]">
+        <div className="flex items-center gap-1 p-1 bg-[#090b14] rounded-xl border border-[#1e2238]">
           <button
             type="button"
             onClick={() => setActiveTab('positions')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-150 cursor-pointer ${
               activeTab === 'positions'
-                ? 'bg-[#232329] text-[#f4f4f5]'
-                : 'text-[#a1a1aa] hover:text-[#f4f4f5]'
+                ? 'bg-gradient-to-r from-purple-950/60 to-blue-950/60 text-purple-200 border border-purple-500/40 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
+                : 'text-[#9ca3af] hover:text-[#f4f4f5] hover:bg-[#131626]'
             }`}
           >
             {language === 'TH' ? 'ออเดอร์ & พอร์ต' : 'Live Positions'} ({openPositions.length})
@@ -196,10 +196,10 @@ export const LiveExecutionEngine: React.FC<LiveExecutionEngineProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('audit')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-150 cursor-pointer ${
               activeTab === 'audit'
-                ? 'bg-[#232329] text-[#f4f4f5]'
-                : 'text-[#a1a1aa] hover:text-[#f4f4f5]'
+                ? 'bg-gradient-to-r from-purple-950/60 to-pink-950/60 text-pink-200 border border-pink-500/40 shadow-[0_0_12px_rgba(236,72,153,0.25)]'
+                : 'text-[#9ca3af] hover:text-[#f4f4f5] hover:bg-[#131626]'
             }`}
           >
             {language === 'TH' ? 'ประวัติทั้ง 6 ขั้นตอน' : 'Pipeline Audit Trail'} ({auditLogs.length})
@@ -207,10 +207,10 @@ export const LiveExecutionEngine: React.FC<LiveExecutionEngineProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('keys')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer flex items-center gap-1 ${
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'keys'
-                ? 'bg-[#232329] text-[#f4f4f5]'
-                : 'text-[#a1a1aa] hover:text-[#f4f4f5]'
+                ? 'bg-gradient-to-r from-blue-950/60 to-purple-950/60 text-blue-200 border border-blue-500/40 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
+                : 'text-[#9ca3af] hover:text-[#f4f4f5] hover:bg-[#131626]'
             }`}
           >
             <Settings className="w-3.5 h-3.5" />
@@ -251,65 +251,89 @@ export const LiveExecutionEngine: React.FC<LiveExecutionEngineProps> = ({
                 </button>
               </div>
             ) : (
-              <table className="w-full text-left border-collapse font-mono text-xs tabular-nums">
-                <thead>
-                  <tr className="border-b border-[#232329] text-[#71717a] text-[11px]">
-                    <th className="py-2.5 pr-2">ID</th>
-                    <th className="py-2.5 px-2">SIDE</th>
-                    <th className="py-2.5 px-2 text-right">ENTRY</th>
-                    <th className="py-2.5 px-2 text-right">MARK</th>
-                    <th className="py-2.5 px-2 text-right">SIZE</th>
-                    <th className="py-2.5 px-2 text-right">UNREALIZED PNL</th>
-                    <th className="py-2.5 px-2">ALGO</th>
-                    <th className="py-2.5 pl-2 text-right">ACTION</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#1c1c21]">
-                  {openPositions.map((pos) => (
-                    <tr key={pos.orderId} className="hover:bg-[#1a1a20] transition-colors">
-                      <td className="py-2.5 pr-2 text-[#71717a] whitespace-nowrap">{pos.orderId}</td>
-                      <td className="py-2.5 px-2 whitespace-nowrap">
-                        <span
-                          className={`font-semibold ${
-                            pos.side === 'BUY' ? 'text-[#4ade80]' : 'text-[#f87171]'
-                          }`}
-                        >
-                          {pos.side}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-2 text-right text-[#f4f4f5] whitespace-nowrap">
-                        ${pos.entryPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="py-2.5 px-2 text-right text-[#93b4fa] whitespace-nowrap">
-                        ${pos.currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="py-2.5 px-2 text-right text-[#e4e4e7] whitespace-nowrap">
-                        ${pos.notionalUsd.toLocaleString()}
-                      </td>
-                      <td
-                        className={`py-2.5 px-2 text-right font-semibold whitespace-nowrap ${
-                          pos.pnlUsd >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'
-                        }`}
-                      >
-                        {pos.pnlUsd >= 0 ? `+$${pos.pnlUsd.toFixed(2)}` : `-$${Math.abs(pos.pnlUsd).toFixed(2)}`} (
-                        {pos.pnlPct.toFixed(2)}%)
-                      </td>
-                      <td className="py-2.5 px-2 text-[#71717a] whitespace-nowrap text-[11px]">
-                        {pos.executionAlgo.split(' ')[0]}
-                      </td>
-                      <td className="py-2.5 pl-2 text-right whitespace-nowrap">
-                        <button
-                          type="button"
-                          onClick={() => onClosePosition(pos.orderId)}
-                          className="px-2 py-1 text-[11px] bg-[#272730] hover:bg-[#343440] text-[#f4f4f5] rounded cursor-pointer"
-                        >
-                          Close
-                        </button>
-                      </td>
+              <div className="space-y-3">
+                <div className="p-2.5 rounded-xl bg-[#121620] border border-[#202c42] flex items-center justify-between text-xs text-[#93c5fd]">
+                  <span className="flex items-center gap-1.5">
+                    <span>💡</span>
+                    <span>
+                      {language === 'TH'
+                        ? 'สถานะเปิดอยู่: บอทจะปิดทำกำไรอัตโนมัติเมื่อถึงเป้า TP หรือคัทลอสเมื่อถึง SL (หรือคุณสามารถกดปุ่มสีแดงเพื่อสั่งปิดทันทีได้ตลอดเวลา)'
+                        : 'Active positions will auto-close on TP target or SL cutoff, or click Close to exit at current market price.'}
+                    </span>
+                  </span>
+                </div>
+                <table className="w-full text-left border-collapse font-mono text-xs tabular-nums">
+                  <thead>
+                    <tr className="border-b border-[#232329] text-[#71717a] text-[11px]">
+                      <th className="py-2.5 pr-2">ID</th>
+                      <th className="py-2.5 px-2">SIDE</th>
+                      <th className="py-2.5 px-2 text-right">ENTRY</th>
+                      <th className="py-2.5 px-2 text-right">TARGET TP / SL</th>
+                      <th className="py-2.5 px-2 text-right">MARK</th>
+                      <th className="py-2.5 px-2 text-right">UNREALIZED PNL</th>
+                      <th className="py-2.5 pl-2 text-right">ACTION</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-[#1c1c21]">
+                    {openPositions.map((pos) => {
+                      const isBitkub = settings.exchange === 'Bitkub';
+                      const symPrefix = isBitkub ? '฿' : '$';
+                      return (
+                        <tr key={pos.orderId} className="hover:bg-[#1a1a20] transition-colors">
+                          <td className="py-2.5 pr-2 text-[#71717a] whitespace-nowrap">
+                            <span className="font-bold text-[#e4e4e7] block">{pos.symbol}</span>
+                            <span className="text-[10px] text-[#52525b]">{pos.orderId}</span>
+                          </td>
+                          <td className="py-2.5 px-2 whitespace-nowrap">
+                            <span
+                              className={`font-semibold px-2 py-0.5 rounded text-[11px] ${
+                                pos.side === 'BUY'
+                                  ? 'bg-[#152a1e] text-[#4ade80] border border-[#22c55e]/30'
+                                  : 'bg-[#2b1313] text-[#f87171] border border-[#ef4444]/30'
+                              }`}
+                            >
+                              {pos.side}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-2 text-right text-[#f4f4f5] whitespace-nowrap">
+                            {symPrefix}{pos.entryPrice.toLocaleString(undefined, { minimumFractionDigits: isBitkub ? 0 : 2 })}
+                          </td>
+                          <td className="py-2.5 px-2 text-right whitespace-nowrap text-[11px]">
+                            <div className="text-[#4ade80]">
+                              TP: {symPrefix}{pos.takeProfitPrice ? pos.takeProfitPrice.toLocaleString(undefined, { minimumFractionDigits: isBitkub ? 0 : 2 }) : (pos.entryPrice * 1.03).toFixed(0)}
+                            </div>
+                            <div className="text-[#f87171]">
+                              SL: {symPrefix}{pos.stopLossPrice ? pos.stopLossPrice.toLocaleString(undefined, { minimumFractionDigits: isBitkub ? 0 : 2 }) : (pos.entryPrice * 0.985).toFixed(0)}
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-2 text-right text-[#93b4fa] whitespace-nowrap">
+                            {symPrefix}{pos.currentPrice.toLocaleString(undefined, { minimumFractionDigits: isBitkub ? 0 : 2 })}
+                          </td>
+                          <td
+                            className={`py-2.5 px-2 text-right font-semibold whitespace-nowrap ${
+                              pos.pnlUsd >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'
+                            }`}
+                          >
+                            {pos.pnlUsd >= 0 ? `+${symPrefix}` : `-${symPrefix}`}
+                            {Math.abs(pos.pnlUsd).toFixed(2)} ({pos.pnlPct >= 0 ? '+' : ''}
+                            {pos.pnlPct.toFixed(2)}%)
+                          </td>
+                          <td className="py-2.5 pl-2 text-right whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={() => onClosePosition(pos.orderId)}
+                              className="px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 border border-pink-400/40 rounded-lg cursor-pointer transition-all btn-micro shadow-xs active:scale-95"
+                              title="คลิกเพื่อปิดออเดอร์ทันที ณ ราคาตลาด"
+                            >
+                              {language === 'TH' ? 'ปิดทันที' : 'Close Now'}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         )}
@@ -359,15 +383,15 @@ export const LiveExecutionEngine: React.FC<LiveExecutionEngineProps> = ({
         )}
 
         {activeTab === 'keys' && (
-          <div className="p-5 rounded-2xl bg-[#0f0f12] border border-[#232329] space-y-4 text-xs">
-            <div className="flex items-center justify-between">
+          <div className="p-5 rounded-2xl bg-[#0f0f12] border border-[#232329] space-y-5 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h4 className="font-semibold text-sm text-[#f4f4f5]">
-                  {language === 'TH' ? 'การตั้งค่าโหมดและกุญแจ API' : 'Execution Environment & API Gateway'}
+                  {language === 'TH' ? 'การตั้งค่าโหมดและกุญแจ API ของกระดานเทรด' : 'Execution Environment & Exchange Gateway'}
                 </h4>
                 <p className="text-[#a1a1aa] mt-0.5">
                   {language === 'TH'
-                    ? 'สลับระหว่างโหมดจำลอง (Paper Trading) และโหมดต่อกระดานจริง (Live Exchange)'
+                    ? 'สลับระหว่างโหมดจำลอง (Paper Trading เงินสมมติ) และโหมดต่อกระดานจริง (Live Exchange เงินจริง)'
                     : 'Switch between risk-free sandbox paper simulation and production exchange routing.'}
                 </p>
               </div>
@@ -377,71 +401,223 @@ export const LiveExecutionEngine: React.FC<LiveExecutionEngineProps> = ({
                 <button
                   type="button"
                   onClick={() => onUpdateSettings({ mode: 'PAPER' })}
-                  className={`px-3 py-1.5 rounded-md font-mono font-medium cursor-pointer ${
-                    settings.mode === 'PAPER' ? 'bg-[#272730] text-[#4ade80]' : 'text-[#71717a]'
+                  className={`px-3 py-1.5 rounded-md font-mono font-medium cursor-pointer transition-colors ${
+                    settings.mode === 'PAPER' ? 'bg-[#272730] text-[#4ade80] font-bold' : 'text-[#71717a]'
                   }`}
                 >
-                  PAPER MODE
+                  PAPER MODE (เงินสมมติ)
                 </button>
                 <button
                   type="button"
                   onClick={() => onUpdateSettings({ mode: 'LIVE' })}
-                  className={`px-3 py-1.5 rounded-md font-mono font-medium cursor-pointer ${
-                    settings.mode === 'LIVE' ? 'bg-rose-950 text-rose-300' : 'text-[#71717a]'
+                  className={`px-3 py-1.5 rounded-md font-mono font-medium cursor-pointer transition-colors ${
+                    settings.mode === 'LIVE' ? 'bg-rose-950 text-rose-300 font-bold border border-rose-800' : 'text-[#71717a]'
                   }`}
                 >
-                  LIVE EXCHANGE
+                  LIVE EXCHANGE (เงินจริง)
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            {/* Explanation card for Live Mode */}
+            {settings.mode === 'LIVE' && (
+              <div className="p-3 bg-[#2d1515] border border-[#6b2525] rounded-xl text-rose-200 text-xs flex items-start gap-2">
+                <span className="font-bold shrink-0">⚠️ คำเตือนโหมดเงินจริง:</span>
+                <span>
+                  เมื่อเปิด LIVE EXCHANGE ระบบจะใช้ API Key เพื่อส่งคำสั่งซื้อขายจริงบนกระดาน แนะนำให้เปิดสิทธิ์ใน API Key เฉพาะ &ldquo;Can Read&rdquo; และ &ldquo;Can Trade&rdquo; (ห้ามเปิดสิทธิ์ Withdraw หรือถอนเงินเด็ดขาดเพื่อความปลอดภัย)
+                </span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               <div>
-                <label className="text-[#71717a] block mb-1">EXCHANGE VENUE</label>
+                <label className="text-[#71717a] block mb-1">
+                  EXCHANGE VENUE (กระดานเทรดที่รองรับ)
+                </label>
                 <select
                   value={settings.exchange}
                   onChange={(e) => onUpdateSettings({ exchange: e.target.value as any })}
                   className="w-full bg-[#18181c] border border-[#2e2e36] rounded-lg px-3 py-2 text-xs font-mono text-[#f4f4f5]"
                 >
-                  <option value="Binance">Binance Futures (USDT-M)</option>
-                  <option value="Bybit">Bybit Linear Perpetual</option>
-                  <option value="OKX">OKX SWAP</option>
+                  <option value="Bitkub">Bitkub (Thailand Spot THB/BTC - กลต. รับรอง)</option>
+                  <option value="Binance">Binance (USDT-M Perpetual &amp; Spot - สภาพคล่องโลก)</option>
+                  <option value="Bitazza">Bitazza (Thailand &amp; Global - โบรกเกอร์ไทย)</option>
+                  <option value="InnovestX">InnovestX (SCBX Digital Asset - สถาบันการเงินไทย)</option>
+                  <option value="Bybit">Bybit (Linear Perpetual - สัญญาล่วงหน้า)</option>
+                  <option value="OKX">OKX (Unified Swap &amp; Spot - Web3 Wallet)</option>
+                  <option value="Coinbase">Coinbase (ตลาดสหรัฐอเมริกา - ตลาดหลักทรัพย์ NASDAQ)</option>
+                  <option value="KuCoin">KuCoin (Global Altcoins &amp; Futures)</option>
                 </select>
+                <span className="text-[11px] text-[#71717a] mt-1 block">
+                  {settings.exchange === 'Bitkub'
+                    ? '✓ รองรับคู่เทรด THB เช่น THB_BTC, THB_ETH ผ่าน Bitkub Open API V3'
+                    : '✓ รองรับคู่เทรด USDT สัญญา Perpetual และ Spot'}
+                </span>
               </div>
 
               <div>
-                <label className="text-[#71717a] block mb-1">TRADING PAIR</label>
+                <label className="text-[#71717a] block mb-1">TRADING PAIR (เหรียญที่เลือกเทรด)</label>
                 <select
                   value={settings.symbol}
                   onChange={(e) => onUpdateSettings({ symbol: e.target.value })}
                   className="w-full bg-[#18181c] border border-[#2e2e36] rounded-lg px-3 py-2 text-xs font-mono text-[#f4f4f5]"
                 >
-                  <option value="BTCUSDT">BTC/USDT Perpetual</option>
-                  <option value="ETHUSDT">ETH/USDT Perpetual</option>
-                  <option value="SOLUSDT">SOL/USDT Perpetual</option>
+                  {settings.exchange === 'Bitkub' ? (
+                    <>
+                      <option value="THB_BTC">THB_BTC (บิตคอยน์ / บาท)</option>
+                      <option value="THB_ETH">THB_ETH (อีเธอเรียม / บาท)</option>
+                      <option value="THB_SOL">THB_SOL (โซลานา / บาท)</option>
+                      <option value="THB_USDT">THB_USDT (USDT / บาท)</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="BTCUSDT">BTC/USDT Perpetual</option>
+                      <option value="ETHUSDT">ETH/USDT Perpetual</option>
+                      <option value="SOLUSDT">SOL/USDT Perpetual</option>
+                    </>
+                  )}
                 </select>
               </div>
 
               <div>
-                <label className="text-[#71717a] block mb-1">API KEY (TESTNET / PRODUCTION)</label>
+                <label className="text-[#71717a] block mb-1">
+                  API KEY ({settings.exchange.toUpperCase()})
+                </label>
                 <input
                   type="password"
-                  placeholder="Paste Exchange API Key..."
+                  placeholder={`วาง API Key จาก ${settings.exchange}...`}
                   value={settings.apiKey}
                   onChange={(e) => onUpdateSettings({ apiKey: e.target.value })}
-                  className="w-full bg-[#18181c] border border-[#2e2e36] rounded-lg px-3 py-2 text-xs font-mono text-[#f4f4f5]"
+                  className="w-full bg-[#18181c] border border-[#2e2e36] rounded-lg px-3 py-2 text-xs font-mono text-[#f4f4f5] placeholder:text-[#52525b]"
                 />
               </div>
 
               <div>
-                <label className="text-[#71717a] block mb-1">API SECRET</label>
+                <label className="text-[#71717a] block mb-1">
+                  API SECRET KEY ({settings.exchange.toUpperCase()})
+                </label>
                 <input
                   type="password"
-                  placeholder="Paste Exchange API Secret..."
+                  placeholder={`วาง API Secret จาก ${settings.exchange}...`}
                   value={settings.apiSecret}
                   onChange={(e) => onUpdateSettings({ apiSecret: e.target.value })}
-                  className="w-full bg-[#18181c] border border-[#2e2e36] rounded-lg px-3 py-2 text-xs font-mono text-[#f4f4f5]"
+                  className="w-full bg-[#18181c] border border-[#2e2e36] rounded-lg px-3 py-2 text-xs font-mono text-[#f4f4f5] placeholder:text-[#52525b]"
                 />
+              </div>
+            </div>
+
+            {/* Notification Channel Multi-Option Section */}
+            <div className="pt-4 border-t border-[#232329] space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h5 className="font-semibold text-[#f4f4f5]">
+                    {language === 'TH'
+                      ? 'ช่องทางส่งข้อความแจ้งเตือนเข้ามือถือ (Notification Dispatch)'
+                      : 'Notification Channels & Alerts'}
+                  </h5>
+                  <p className="text-[11px] text-[#a1a1aa] mt-0.5">
+                    {language === 'TH'
+                      ? 'เลือกช่องทางที่คุณต้องการให้บอทเด้งเตือนเมื่อมีการซื้อขายสำเร็จหรือสั่งระงับความเสี่ยง'
+                      : 'Choose where you want the bot to ping you on executions.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {(
+                  [
+                    { id: 'DISCORD', label: 'Discord Webhook' },
+                    { id: 'TELEGRAM', label: 'Telegram Bot' },
+                    { id: 'LINE_NOTIFY', label: 'LINE Notify' },
+                    { id: 'CUSTOM_WEBHOOK', label: 'Custom HTTP' },
+                  ] as const
+                ).map((ch) => (
+                  <button
+                    key={ch.id}
+                    type="button"
+                    onClick={() => onUpdateSettings({ alertChannel: ch.id })}
+                    className={`p-2.5 rounded-xl border text-center transition-colors cursor-pointer ${
+                      settings.alertChannel === ch.id
+                        ? 'bg-[#1b2338] border-[#60a5fa] text-[#93c5fd] font-semibold'
+                        : 'bg-[#141418] border-[#25252d] text-[#a1a1aa] hover:border-[#383844]'
+                    }`}
+                  >
+                    {ch.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Dynamic input depending on alert channel */}
+              <div className="p-3 bg-[#141418] border border-[#25252d] rounded-xl space-y-2">
+                {settings.alertChannel === 'DISCORD' && (
+                  <div>
+                    <label className="text-[#71717a] block mb-1">DISCORD WEBHOOK URL</label>
+                    <input
+                      type="text"
+                      placeholder="https://discord.com/api/webhooks/..."
+                      value={settings.discordWebhookUrl}
+                      onChange={(e) => onUpdateSettings({ discordWebhookUrl: e.target.value })}
+                      className="w-full bg-[#18181c] border border-[#2e2e36] rounded-lg px-3 py-2 text-xs font-mono text-[#f4f4f5] placeholder:text-[#52525b]"
+                    />
+                    <span className="text-[11px] text-[#71717a] mt-1 block">
+                      วิธีเอา: ใน Discord ให้คลิก การตั้งค่าห้อง (Edit Channel) ➔ Integrations ➔ Webhooks ➔ Copy Webhook URL
+                    </span>
+                  </div>
+                )}
+
+                {settings.alertChannel === 'TELEGRAM' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[#71717a] block mb-1">TELEGRAM BOT TOKEN</label>
+                      <input
+                        type="text"
+                        placeholder="123456789:ABCdefGhI..."
+                        value={settings.telegramBotToken}
+                        onChange={(e) => onUpdateSettings({ telegramBotToken: e.target.value })}
+                        className="w-full bg-[#18181c] border border-[#2e2e36] rounded-lg px-3 py-2 text-xs font-mono text-[#f4f4f5] placeholder:text-[#52525b]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[#71717a] block mb-1">TELEGRAM CHAT ID</label>
+                      <input
+                        type="text"
+                        placeholder="เช่น @mychannel หรือ 987654321"
+                        value={settings.telegramChatId}
+                        onChange={(e) => onUpdateSettings({ telegramChatId: e.target.value })}
+                        className="w-full bg-[#18181c] border border-[#2e2e36] rounded-lg px-3 py-2 text-xs font-mono text-[#f4f4f5] placeholder:text-[#52525b]"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {settings.alertChannel === 'LINE_NOTIFY' && (
+                  <div>
+                    <label className="text-[#71717a] block mb-1">LINE NOTIFY ACCESS TOKEN</label>
+                    <input
+                      type="text"
+                      placeholder="วาง LINE Notify Personal Access Token..."
+                      value={settings.lineNotifyToken}
+                      onChange={(e) => onUpdateSettings({ lineNotifyToken: e.target.value })}
+                      className="w-full bg-[#18181c] border border-[#2e2e36] rounded-lg px-3 py-2 text-xs font-mono text-[#f4f4f5] placeholder:text-[#52525b]"
+                    />
+                    <span className="text-[11px] text-[#71717a] mt-1 block">
+                      วิธีเอา: เข้าเว็บ notify-bot.line.me ➔ เข้าสู่ระบบ ➔ หน้าของฉัน (My page) ➔ กด ออก Token (Generate token)
+                    </span>
+                  </div>
+                )}
+
+                {settings.alertChannel === 'CUSTOM_WEBHOOK' && (
+                  <div>
+                    <label className="text-[#71717a] block mb-1">CUSTOM ENDPOINT URL (POST JSON)</label>
+                    <input
+                      type="text"
+                      placeholder="https://api.yourdomain.com/v1/trade-webhook"
+                      value={settings.customWebhookUrl}
+                      onChange={(e) => onUpdateSettings({ customWebhookUrl: e.target.value })}
+                      className="w-full bg-[#18181c] border border-[#2e2e36] rounded-lg px-3 py-2 text-xs font-mono text-[#f4f4f5] placeholder:text-[#52525b]"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -26,11 +26,11 @@ export const StageDetailPanel: React.FC<StageDetailPanelProps> = ({
   onSelectPrev,
 }) => {
   return (
-    <div className="w-full rounded-[28px] bg-[#141416] border border-[#27272b] p-6 sm:p-8 transition-colors">
-      {/* Exact Visual Header matching user screenshot */}
+    <div className="w-full rounded-[28px] bg-[#090b14] border border-[#1e2238] p-6 sm:p-8 shadow-[0_10px_35px_rgba(0,0,0,0.5)] transition-all">
+      {/* Visual Header with Purple/Pink/Blue neon accents */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4 min-w-0">
-          <div className="w-11 h-11 rounded-full bg-[#172554] text-[#60a5fa] flex items-center justify-center font-mono font-semibold text-[18px] shrink-0 tabular-nums">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-900/70 via-pink-900/50 to-blue-900/70 border border-purple-500/50 text-purple-200 flex items-center justify-center font-mono font-bold text-[18px] shrink-0 tabular-nums shadow-[0_0_15px_rgba(168,85,247,0.35)]">
             {stage.id}
           </div>
           <h2 className="text-[22px] sm:text-[26px] font-semibold tracking-tight text-[#f4f4f5] leading-tight">
@@ -38,7 +38,7 @@ export const StageDetailPanel: React.FC<StageDetailPanelProps> = ({
           </h2>
         </div>
 
-        <div className="px-5 py-2 rounded-[22px] border border-[#2e2e34] bg-[#121215] font-mono text-[14px] sm:text-[16px] text-[#a1a1aa] leading-snug shrink-0">
+        <div className="px-4 py-1.5 rounded-xl border border-purple-500/30 bg-[#0f1220] font-mono text-[13px] sm:text-[14px] text-purple-200 leading-snug shrink-0 shadow-xs">
           {stage.tech}
         </div>
       </div>
@@ -178,20 +178,27 @@ export const StageDetailPanel: React.FC<StageDetailPanelProps> = ({
               )}
             </div>
 
-            <div className="p-3 bg-[#16161b] rounded-lg border border-[#272730] text-xs">
+            <div className="p-3 bg-[#16161b] rounded-lg border border-[#272720] text-xs">
               <div className="text-[#71717a] font-mono mb-1">INFERENCE REASONING:</div>
               <div className="text-[#e4e4e7] leading-relaxed">
                 {signal ? signal.reason : 'Waiting for incoming tick frame...'}
               </div>
             </div>
 
-            {/* Parameter slider for AI Confidence */}
-            <div className="space-y-1.5 pt-2">
-              <div className="flex justify-between text-xs">
-                <span className="text-[#a1a1aa]">
-                  {language === 'TH' ? 'เกณฑ์ความมั่นใจขั้นต่ำ (Confidence Hurdle)' : 'Min Confidence Hurdle'}
-                </span>
-                <span className="font-mono text-[#60a5fa] font-bold">
+            {/* Parameter slider for AI Confidence with detailed Thai explanation */}
+            <div className="space-y-2 pt-2 border-t border-[#1f1f26]">
+              <div className="flex justify-between items-center text-xs">
+                <div>
+                  <span className="text-[#f4f4f5] font-semibold">
+                    {language === 'TH' ? 'เกณฑ์ความมั่นใจขั้นต่ำ (Confidence Hurdle)' : 'Min Confidence Hurdle'}
+                  </span>
+                  <span className="text-[#a1a1aa] block text-[11px] mt-0.5">
+                    {language === 'TH'
+                      ? '💡 คำอธิบาย: ตั้งไว้เพื่อให้บอท &ldquo;คัดเฉพาะจังหวะชัวร์ๆ&rdquo; เช่น ถ้าตั้ง 80% บอทจะไม่เปิดออเดอร์มั่วซั่วถ้าโมเดลมั่นใจไม่ถึง 80%'
+                      : 'Minimum probability hurdle required before an inference can trigger an execution.'}
+                  </span>
+                </div>
+                <span className="font-mono text-[#60a5fa] font-bold text-base tabular-nums shrink-0 ml-4">
                   {(settings.minConfidence * 100).toFixed(0)}%
                 </span>
               </div>
@@ -204,6 +211,27 @@ export const StageDetailPanel: React.FC<StageDetailPanelProps> = ({
                 onChange={(e) => onUpdateSettings({ minConfidence: parseFloat(e.target.value) })}
                 className="w-full accent-[#60a5fa] cursor-pointer"
               />
+              <div className="flex justify-between text-[10px] text-[#71717a] font-mono">
+                <span>50% (เทรดบ่อย/เสี่ยงสูง)</span>
+                <span>70% (สมดุล)</span>
+                <span>90% (เทรดน้อย/เน้นแม่นยำ)</span>
+              </div>
+            </div>
+
+            {/* Model Architecture Selector */}
+            <div className="pt-2 border-t border-[#1f1f26]">
+              <label className="text-xs text-[#f4f4f5] font-semibold block mb-1">
+                {language === 'TH' ? 'ประเภทโมเดล AI ที่ใช้ (AI Model Ensemble)' : 'Active ML Ensemble'}
+              </label>
+              <select
+                value={settings.modelType}
+                onChange={(e) => onUpdateSettings({ modelType: e.target.value as any })}
+                className="w-full bg-[#18181c] border border-[#2e2e36] rounded-lg px-3 py-2 text-xs font-mono text-[#f4f4f5]"
+              >
+                <option value="XGBoost + Transformer">XGBoost + Temporal Transformer (จับโมเมนตัมและแนวโน้ม)</option>
+                <option value="DeepLOB Orderbook">DeepLOB CNN-LSTM (วิเคราะห์แรงซื้อขาย Bid/Ask ใน Orderbook)</option>
+                <option value="Statistical Arbitrage">Statistical Arbitrage (คำนวณการดีดกลับเข้าหาค่าเฉลี่ย Mean Reversion)</option>
+              </select>
             </div>
           </div>
         )}
@@ -233,12 +261,23 @@ export const StageDetailPanel: React.FC<StageDetailPanelProps> = ({
               </div>
             </div>
 
-            {/* Adjustable Risk Parameters */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-[#a1a1aa]">Max Daily Drawdown</span>
-                  <span className="font-mono text-[#f59e0b] font-bold">{settings.maxDrawdownLimitPct}%</span>
+            {/* Adjustable Risk Parameters with Clear Explanations */}
+            <div className="space-y-4 pt-1">
+              <div className="p-3 bg-[#16161b] rounded-xl border border-[#262630] space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <div>
+                    <span className="text-[#f4f4f5] font-semibold">
+                      {language === 'TH' ? 'เพดานขาดทุนสูงสุดประจำวัน (Daily Max Drawdown)' : 'Max Daily Drawdown'}
+                    </span>
+                    <span className="text-[#a1a1aa] block text-[11px] mt-0.5">
+                      {language === 'TH'
+                        ? '💡 คำอธิบาย: วงจรตัดไฟความเสี่ยง (Circuit Breaker) ถ้าวันนี้พอร์ตขาดทุนติดลบถึง % นี้ บอทจะหยุดเทรดทันทีเพื่อรักษาเงินต้น'
+                        : 'Hard circuit breaker: halts all new order entries if intraday losses reach this threshold.'}
+                    </span>
+                  </div>
+                  <span className="font-mono text-[#f59e0b] font-bold text-base tabular-nums ml-3">
+                    {settings.maxDrawdownLimitPct}%
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -251,10 +290,21 @@ export const StageDetailPanel: React.FC<StageDetailPanelProps> = ({
                 />
               </div>
 
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-[#a1a1aa]">Kelly Multiplier</span>
-                  <span className="font-mono text-[#60a5fa] font-bold">{settings.kellyFraction}x</span>
+              <div className="p-3 bg-[#16161b] rounded-xl border border-[#262630] space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <div>
+                    <span className="text-[#f4f4f5] font-semibold">
+                      {language === 'TH' ? 'ตัวคูณขนาดไม้ตามสูตรเคลลี่ (Kelly Multiplier)' : 'Kelly Sizing Multiplier'}
+                    </span>
+                    <span className="text-[#a1a1aa] block text-[11px] mt-0.5">
+                      {language === 'TH'
+                        ? '💡 คำอธิบาย: คำนวณขนาดเงินที่จะลงต่อ 1 ไม้ตามทฤษฎีความน่าจะเป็น ยิ่งมั่นใจมากยิ่งลงมาก แต่จะไม่ลงจนหมดตัว (0.25x = ปลอดภัยสูง)'
+                        : 'Fractional Kelly sizing dampener. Scales order notional relative to estimated edge.'}
+                    </span>
+                  </div>
+                  <span className="font-mono text-[#60a5fa] font-bold text-base tabular-nums ml-3">
+                    {settings.kellyFraction}x
+                  </span>
                 </div>
                 <input
                   type="range"

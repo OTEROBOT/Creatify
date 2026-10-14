@@ -4,16 +4,41 @@
   :root {
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
+    --color-bg-dark: #07080e;
+    --color-card-dark: #0e1019;
+    --color-border-dark: #1b1e2e;
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: #0e0e11;
+    background-color: #07080e;
     color: #f4f4f5;
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  /* Custom subtle scrollbar with purple/blue tint */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #090b12;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #25283d;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #473e66;
+  }
+
+  ::selection {
+    background: rgba(168, 85, 247, 0.3);
+    color: #ffffff;
   }
 }
 
@@ -23,6 +48,31 @@
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* Neon glow helper classes for Purple / Pink / Blue accents */
+.glow-purple-sm {
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.25);
+}
+.glow-pink-sm {
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.25);
+}
+.glow-blue-sm {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.25);
+}
+.glow-neon-combined {
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.15), 0 0 50px rgba(59, 130, 246, 0.1);
+}
+
+/* Micro-interaction smooth hover transitions */
+.btn-micro {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s ease, border-color 0.18s ease;
+}
+.btn-micro:hover {
+  transform: translateY(-1px);
+}
+.btn-micro:active {
+  transform: translateY(0.5px) scale(0.985);
 }
 
 @keyframes packet-right {
@@ -49,3 +99,4 @@
     transition-duration: 0.01ms !important;
   }
 }
+

@@ -66,6 +66,10 @@ export interface ExecutedOrder {
   pnlPct: number;
   executionAlgo: string;
   executionType: 'PAPER' | 'LIVE_EXCHANGE';
+  takeProfitPrice?: number;
+  stopLossPrice?: number;
+  closeReason?: 'TAKE_PROFIT' | 'STOP_LOSS' | 'MANUAL_APP' | 'MANUAL_EXCHANGE';
+  closedAtPrice?: number;
 }
 
 export interface PipelineAuditLog {
@@ -82,8 +86,11 @@ export interface BotSettings {
   mode: 'PAPER' | 'LIVE';
   apiKey: string;
   apiSecret: string;
-  exchange: 'Binance' | 'Bybit' | 'OKX';
+  exchange: 'Bitkub' | 'Binance' | 'Bitazza' | 'InnovestX' | 'Bybit' | 'OKX' | 'Coinbase' | 'KuCoin';
   symbol: string;
+  favoriteSymbols: string[]; // User starred bookmark coins
+  initialCapitalUsd: number; // User custom portfolio balance
+  capitalCurrency: 'THB' | 'USD';
   // Strategy settings
   minConfidence: number; // 0.5 - 0.95
   modelType: 'XGBoost + Transformer' | 'DeepLOB Orderbook' | 'Statistical Arbitrage';
@@ -98,9 +105,12 @@ export interface BotSettings {
   executionAlgo: 'TWAP Micro-Slices' | 'VWAP Post-Only Maker' | 'IOC Direct Fill';
   maxSlippageBps: number;
   // Alerts
+  alertChannel: 'DISCORD' | 'TELEGRAM' | 'LINE_NOTIFY' | 'CUSTOM_WEBHOOK';
   discordWebhookUrl: string;
   telegramBotToken: string;
   telegramChatId: string;
+  lineNotifyToken: string;
+  customWebhookUrl: string;
   alertOnExecution: boolean;
   alertOnRiskReject: boolean;
 }

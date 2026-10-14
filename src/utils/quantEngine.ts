@@ -169,6 +169,15 @@ export function simulateExecutionFill(
       : +(markPrice * (1 - slippageBps / 10000)).toFixed(2);
 
   const qty = +(sizeUsd / fillPrice).toFixed(4);
+  const tpPct = settings.takeProfitPct || 3.0;
+  const slPct = settings.stopLossPct || 1.5;
+  const isBuy = signal.direction === 'BUY';
+  const takeProfitPrice = isBuy
+    ? +(fillPrice * (1 + tpPct / 100)).toFixed(2)
+    : +(fillPrice * (1 - tpPct / 100)).toFixed(2);
+  const stopLossPrice = isBuy
+    ? +(fillPrice * (1 - slPct / 100)).toFixed(2)
+    : +(fillPrice * (1 + slPct / 100)).toFixed(2);
 
   return {
     orderId: `ORD-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 900 + 100)}`,
@@ -185,5 +194,7 @@ export function simulateExecutionFill(
     pnlPct: 0,
     executionAlgo: settings.executionAlgo,
     executionType: settings.mode === 'LIVE' ? 'LIVE_EXCHANGE' : 'PAPER',
+    takeProfitPrice,
+    stopLossPrice,
   };
 }
