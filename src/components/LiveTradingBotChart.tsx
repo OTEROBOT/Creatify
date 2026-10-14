@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { BotSettings, ExecutedOrder, LiveMarketTick } from '../types/pipeline';
+import { BotSettings, ExecutedOrder, LiveMarketTick, AlphaSignal } from '../types/pipeline';
 import {
   TrendingUp,
   TrendingDown,
@@ -43,6 +43,8 @@ interface LiveTradingBotChartProps {
   onManualTrigger: () => void;
   onClosePosition: (orderId: string) => void;
   language: 'TH' | 'EN';
+  latestSignal?: AlphaSignal | null;
+  scanCountdown?: number;
 }
 
 export const LiveTradingBotChart: React.FC<LiveTradingBotChartProps> = ({
@@ -55,6 +57,8 @@ export const LiveTradingBotChart: React.FC<LiveTradingBotChartProps> = ({
   onManualTrigger,
   onClosePosition,
   language,
+  latestSignal,
+  scanCountdown,
 }) => {
   const [timeframe, setTimeframe] = useState<ChartTimeframe>('1m');
   const [chartType, setChartType] = useState<'candle' | 'line'>('candle');
@@ -489,16 +493,47 @@ export const LiveTradingBotChart: React.FC<LiveTradingBotChartProps> = ({
             </div>
           </div>
         ) : (
-          <div className="mt-3 pt-3 border-t border-[#1e293b] flex flex-wrap items-center justify-between gap-3 text-xs text-[#94a3b8]">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-[#f1f5f9]">โมเดลคำนวณ:</span>
-              <span className="font-mono text-[#93c5fd]">{settings.modelType}</span>
-              <span className="text-[#64748b]">|</span>
-              <span className="font-semibold text-[#f1f5f9]">เกณฑ์ความมั่นใจขั้นต่ำ:</span>
-              <span className="font-mono text-[#93c5fd]">{(settings.minConfidence * 100).toFixed(0)}%</span>
+          <div className="mt-3 pt-3 border-t border-[#1e293b] space-y-2 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-[#94a3b8]">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-[#f1f5f9]">โมเดล AI:</span>
+                <span className="font-mono text-purple-300 font-bold">{settings.modelType}</span>
+                <span className="text-[#64748b]">|</span>
+                <span className="font-semibold text-[#f1f5f9]">เกณฑ์เข้าซื้อ (Threshold):</span>
+                <span className="font-mono text-blue-300 font-bold">≥ {(settings.minConfidence * 100).toFixed(0)}%</span>
+                {latestSignal && (
+                  <>
+                    <span className="text-[#64748b]">|</span>
+                    <span className="font-semibold text-[#f1f5f9]">สัญญาณล่าสุด:</span>
+                    <span className={`font-mono font-bold ${
+                      latestSignal.direction === 'BUY'
+                        ? 'text-emerald-400'
+                        : latestSignal.direction === 'SELL'
+                        ? 'text-pink-400'
+                        : 'text-amber-300'
+                    }`}>
+                      {latestSignal.direction} ({(latestSignal.confidence * 100).toFixed(0)}%)
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {isRunning && scanCountdown !== undefined && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0e1222] border border-purple-500/30 text-purple-200 font-mono text-[11px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                  <span>สแกนรอบถัดไป: <strong>{scanCountdown}s</strong></span>
+                </div>
+              )}
             </div>
-            <div className="text-[11px] text-[#94a3b8]">
-              💡 เมื่อบอทเห็นสัญญาณความมั่นใจถึงเกณฑ์ บอทจะเคาะเปิดออเดอร์และตั้งจุดขายทำกำไร/คัทลอสให้ทันที
+
+            <div className="text-[11px] text-[#9ca3af] bg-[#0c0f1c] p-2.5 rounded-xl border border-[#1b2138] flex flex-wrap items-center justify-between gap-2">
+              <span className="flex items-center gap-1.5">
+                <span className="text-amber-400">⏳</span>
+                <span><strong>ทำไมยังไม่เปิดออเดอร์?</strong> บอทสแตนบายเฝ้ารอจังหวะที่สัญญาณ AI มั่นใจเกินเกณฑ์และสเปรดปลอดภัย เพื่อไม่ให้เสียค่าธรรมเนียมฟรีและรักษาเงินต้น</span>
+              </span>
+              <span className="text-purple-300 font-semibold cursor-pointer hover:underline" onClick={onManualTrigger}>
+                👉 ต้องการดูบอทเข้าซื้อทันที? คลิกที่นี่เพื่อทดสอบ
+              </span>
             </div>
           </div>
         )}

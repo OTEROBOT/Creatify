@@ -28,7 +28,8 @@ import { CoinWatchlistManager } from './components/CoinWatchlistManager';
 import { CoinRecommendationRadar } from './components/CoinRecommendationRadar';
 import { CrossDeviceSyncModal } from './components/CrossDeviceSyncModal';
 import { LiveTradingBotChart } from './components/LiveTradingBotChart';
-import { Wifi, WifiOff, HelpCircle, Share2, Smartphone } from 'lucide-react';
+import { BotLiveStatusCockpit } from './components/BotLiveStatusCockpit';
+import { Wifi, WifiOff, HelpCircle, Share2, Smartphone, Play, Pause, Activity } from 'lucide-react';
 
 const DEFAULT_BOT_SETTINGS: BotSettings = {
   mode: 'PAPER',
@@ -70,6 +71,8 @@ export default function App() {
   const [isFullGuideOpen, setIsFullGuideOpen] = useState<boolean>(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
   const [quizProfileApplied, setQuizProfileApplied] = useState<string | null>(null);
+  const [scanCountdown, setScanCountdown] = useState<number>(4);
+  const [totalScansCount, setTotalScansCount] = useState<number>(0);
 
   // Bot Configuration Settings with LocalStorage Persistence
   const [settings, setSettings] = useState<BotSettings>(() => {
@@ -562,14 +565,27 @@ export default function App() {
     }, 400);
   }, [currentTick, settings, portfolioBalanceUsd, dailyPnlUsd, orders]);
 
-  // Automated recurring execution loop
+  // Keep latest executePipelineLoop reference without tearing down the timer on every tick
+  const executePipelineLoopRef = useRef(executePipelineLoop);
+  useEffect(() => {
+    executePipelineLoopRef.current = executePipelineLoop;
+  }, [executePipelineLoop]);
+
+  // Automated recurring execution loop with 1-second live countdown
   useEffect(() => {
     if (!isRunning) return;
     const interval = setInterval(() => {
-      executePipelineLoop();
-    }, 4500);
+      setScanCountdown((prev) => {
+        if (prev <= 1) {
+          executePipelineLoopRef.current?.(false);
+          setTotalScansCount((c) => c + 1);
+          return 4;
+        }
+        return prev - 1;
+      });
+    }, 1000);
     return () => clearInterval(interval);
-  }, [isRunning, executePipelineLoop]);
+  }, [isRunning]);
 
   const handleClosePosition = (orderId: string) => {
     setOrders((prev) =>
@@ -677,6 +693,27 @@ export default function App() {
 
         {/* Header Action Buttons */}
         <div className="flex items-center gap-2.5 shrink-0">
+          {/* Bot Live Operational Pill & Toggle */}
+          <button
+            type="button"
+            onClick={() => setIsRunning((r) => !r)}
+            className={`flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded-xl border transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer shadow-xs ${
+              isRunning
+                ? 'bg-purple-950/40 text-purple-200 border-purple-500/40 hover:border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.2)]'
+                : 'bg-amber-950/40 text-amber-300 border-amber-500/40 hover:border-amber-400'
+            }`}
+            title={isRunning ? 'คลิกเพื่อหยุดบอทชั่วคราว' : 'คลิกเพื่อเริ่มการทำงานบอท'}
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isRunning ? 'bg-purple-400 animate-pulse' : 'bg-amber-400'
+              }`}
+            />
+            <span className="font-bold">
+              {isRunning ? `BOT RUNNING (${scanCountdown}s)` : 'BOT PAUSED'}
+            </span>
+          </button>
+
           {/* WebSocket Status Indicator - Clickable */}
           <button
             type="button"
@@ -785,6 +822,23 @@ export default function App() {
           onResetDefaults={handleResetDefaults}
         />
 
+        {/* Primary Bot Live Status & Cockpit Command Center */}
+        <BotLiveStatusCockpit
+          isRunning={isRunning}
+          onToggleRun={() => setIsRunning((r) => !r)}
+          onForceTestTrade={() => executePipelineLoop(true)}
+          onClosePosition={handleClosePosition}
+          orders={orders}
+          settings={settings}
+          currentTick={currentTick}
+          latestSignal={latestSignal}
+          latestRiskResult={latestRiskResult}
+          scanCountdown={scanCountdown}
+          totalScansCount={totalScansCount}
+          language={language}
+          onOpenGuide={() => setIsFullGuideOpen(true)}
+        />
+
         {/* Smart Coin Recommendation Radar: Daily, Monthly, Yearly, All-Time Horizons */}
         <CoinRecommendationRadar
           currentSymbol={settings.symbol}
@@ -818,6 +872,8 @@ export default function App() {
             onManualTrigger={() => executePipelineLoop(true)}
             onClosePosition={handleClosePosition}
             language={language}
+            latestSignal={latestSignal}
+            scanCountdown={scanCountdown}
           />
         </div>
 
